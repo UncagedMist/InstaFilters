@@ -2,6 +2,7 @@ package kk.techbytecare.instafilters.Fragments;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.BottomSheetDialogFragment;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,10 +12,19 @@ import android.widget.SeekBar;
 import kk.techbytecare.instafilters.Interface.EditImageFragmentListener;
 import kk.techbytecare.instafilters.R;
 
-public class EditFragment extends Fragment implements SeekBar.OnSeekBarChangeListener {
+public class EditFragment extends BottomSheetDialogFragment implements SeekBar.OnSeekBarChangeListener {
 
     private EditImageFragmentListener listener;
     SeekBar seekBar_brightness,seekBar_saturation,seekBar_contrast;
+
+    static EditFragment instance;
+
+    public static EditFragment getInstance() {
+        if (instance == null)   {
+            instance = new EditFragment();
+        }
+        return instance;
+    }
 
     public void setListener(EditImageFragmentListener listener) {
         this.listener = listener;

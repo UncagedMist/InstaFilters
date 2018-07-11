@@ -4,6 +4,7 @@ package kk.techbytecare.instafilters.Fragments;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.BottomSheetDialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
@@ -28,7 +29,7 @@ import kk.techbytecare.instafilters.R;
 import kk.techbytecare.instafilters.Utils.BitmapUtils;
 import kk.techbytecare.instafilters.Utils.SpacesItemDecoration;
 
-public class FilterListFragment extends Fragment implements FilterListFragmentListener {
+public class FilterListFragment extends BottomSheetDialogFragment implements FilterListFragmentListener {
 
     RecyclerView recyclerView;
     ThumbnailAdapter adapter;
@@ -36,6 +37,15 @@ public class FilterListFragment extends Fragment implements FilterListFragmentLi
     List<ThumbnailItem> thumbnailItems;
 
     FilterListFragmentListener listener;
+
+    static FilterListFragment instance;
+
+    public static FilterListFragment getInstance() {
+        if (instance == null)   {
+            instance = new FilterListFragment();
+        }
+        return instance;
+    }
 
     public void setListener(FilterListFragmentListener listener) {
         this.listener = listener;
