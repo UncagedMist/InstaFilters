@@ -3,10 +3,10 @@ package kk.techbytecare.instafilters;
 import android.Manifest;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Typeface;
 import android.net.Uri;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
-import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -16,7 +16,6 @@ import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.karumi.dexter.Dexter;
@@ -36,13 +35,18 @@ import ja.burhanrashid52.photoeditor.OnSaveBitmap;
 import ja.burhanrashid52.photoeditor.PhotoEditor;
 import ja.burhanrashid52.photoeditor.PhotoEditorView;
 import kk.techbytecare.instafilters.Adapter.ViewPagerAdapter;
+import kk.techbytecare.instafilters.Fragments.BrushFragment;
 import kk.techbytecare.instafilters.Fragments.EditFragment;
+import kk.techbytecare.instafilters.Fragments.EmojiFragment;
 import kk.techbytecare.instafilters.Fragments.FilterListFragment;
+import kk.techbytecare.instafilters.Interface.BrushFragmentListener;
 import kk.techbytecare.instafilters.Interface.EditImageFragmentListener;
+import kk.techbytecare.instafilters.Interface.EmojiFragmentListener;
 import kk.techbytecare.instafilters.Interface.FilterListFragmentListener;
 import kk.techbytecare.instafilters.Utils.BitmapUtils;
 
-public class MainActivity extends AppCompatActivity implements FilterListFragmentListener, EditImageFragmentListener {
+public class MainActivity extends AppCompatActivity implements FilterListFragmentListener,
+        EditImageFragmentListener, BrushFragmentListener, EmojiFragmentListener {
 
     public static final String PIC_NAME = "flash.jpg";
 
@@ -51,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements FilterListFragmen
     PhotoEditorView photoEditorView;
     PhotoEditor photoEditor;
 
-    CardView btn_filter_list,btn_edit;
+    CardView btn_filter_list,btn_edit,btn_brush,btn_emoji;
 
     CoordinatorLayout coordinatorLayout;
 
@@ -82,12 +86,15 @@ public class MainActivity extends AppCompatActivity implements FilterListFragmen
 
         photoEditor = new PhotoEditor.Builder(this,photoEditorView)
                 .setPinchTextScalable(true)
+                .setDefaultEmojiTypeface(Typeface.createFromAsset(getAssets(),"emojione-android.ttf"))
                 .build();
 
         coordinatorLayout = findViewById(R.id.coordinator);
 
         btn_filter_list = findViewById(R.id.btn_filter_list);
         btn_edit = findViewById(R.id.btn_edit);
+        btn_brush = findViewById(R.id.btn_brush);
+        btn_emoji = findViewById(R.id.btn_emoji);
 
         btn_filter_list.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -104,6 +111,27 @@ public class MainActivity extends AppCompatActivity implements FilterListFragmen
                 EditFragment editFragment = EditFragment.getInstance();
                 editFragment.setListener(MainActivity.this);
                 editFragment.show(getSupportFragmentManager(),editFragment.getTag());
+            }
+        });
+
+        btn_brush.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                photoEditor.setBrushDrawingMode(true);
+
+                BrushFragment brushFragment = BrushFragment.getInstance();
+                brushFragment.setListener(MainActivity.this);
+                brushFragment.show(getSupportFragmentManager(),brushFragment.getTag());
+            }
+        });
+
+        btn_emoji.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                EmojiFragment emojiFragment = EmojiFragment.getInstance();
+                emojiFragment.setListener(MainActivity.this);
+                emojiFragment.show(getSupportFragmentManager(),emojiFragment.getTag());
             }
         });
 
@@ -330,7 +358,37 @@ public class MainActivity extends AppCompatActivity implements FilterListFragmen
             photoEditorView.getSource().setImageBitmap(originalBitmap);
             bitmap.recycle();
 
-            filterListFragment.displayThumbnail(originalBitmap);
+            //filterListFragment.displayThumbnail(originalBitmap);
         }
+    }
+
+    @Override
+    public void onBrushSizeChanged(float size) {
+        photoEditor.setBrushSize(size);
+    }
+
+    @Override
+    public void onBrushOpacityChanged(int opacity) {
+        photoEditor.setOpacity(opacity);
+    }
+
+    @Override
+    public void onBrushColorChanged(int color) {
+        photoEditor.setBrushColor(color);
+    }
+
+    @Override
+    public void onBrushStateChanged(boolean isEraser) {
+        if (isEraser)   {
+            photoEditor.brushEraser();
+        }
+        else    {
+            photoEditor.setBrushDrawingMode(true);
+        }
+    }
+
+    @Override
+    public void onEmojiSelected(String emoji) {
+        photoEditor.addEmoji(emoji);
     }
 }
