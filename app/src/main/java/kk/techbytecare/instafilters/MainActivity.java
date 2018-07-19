@@ -35,10 +35,12 @@ import ja.burhanrashid52.photoeditor.OnSaveBitmap;
 import ja.burhanrashid52.photoeditor.PhotoEditor;
 import ja.burhanrashid52.photoeditor.PhotoEditorView;
 import kk.techbytecare.instafilters.Adapter.ViewPagerAdapter;
+import kk.techbytecare.instafilters.Fragments.AddTextFragment;
 import kk.techbytecare.instafilters.Fragments.BrushFragment;
 import kk.techbytecare.instafilters.Fragments.EditFragment;
 import kk.techbytecare.instafilters.Fragments.EmojiFragment;
 import kk.techbytecare.instafilters.Fragments.FilterListFragment;
+import kk.techbytecare.instafilters.Interface.AddTextFragmentListener;
 import kk.techbytecare.instafilters.Interface.BrushFragmentListener;
 import kk.techbytecare.instafilters.Interface.EditImageFragmentListener;
 import kk.techbytecare.instafilters.Interface.EmojiFragmentListener;
@@ -46,16 +48,17 @@ import kk.techbytecare.instafilters.Interface.FilterListFragmentListener;
 import kk.techbytecare.instafilters.Utils.BitmapUtils;
 
 public class MainActivity extends AppCompatActivity implements FilterListFragmentListener,
-        EditImageFragmentListener, BrushFragmentListener, EmojiFragmentListener {
+        EditImageFragmentListener, BrushFragmentListener, EmojiFragmentListener, AddTextFragmentListener {
 
     public static final String PIC_NAME = "flash.jpg";
 
     public static final int PERMISSION_PICK_IMAGE = 1000;
+    public static final int PERMISSION_INSERT_IMAGE = 5152;
 
     PhotoEditorView photoEditorView;
     PhotoEditor photoEditor;
 
-    CardView btn_filter_list,btn_edit,btn_brush,btn_emoji;
+    CardView btn_filter_list,btn_edit,btn_brush,btn_emoji,btn_add_text,btn_add_image;
 
     CoordinatorLayout coordinatorLayout;
 
@@ -95,6 +98,8 @@ public class MainActivity extends AppCompatActivity implements FilterListFragmen
         btn_edit = findViewById(R.id.btn_edit);
         btn_brush = findViewById(R.id.btn_brush);
         btn_emoji = findViewById(R.id.btn_emoji);
+        btn_add_text = findViewById(R.id.btn_add_text);
+        btn_add_image = findViewById(R.id.btn_image);
 
         btn_filter_list.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -134,8 +139,47 @@ public class MainActivity extends AppCompatActivity implements FilterListFragmen
                 emojiFragment.show(getSupportFragmentManager(),emojiFragment.getTag());
             }
         });
+        btn_add_text.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AddTextFragment addTextFragment = AddTextFragment.getInstance();
+                addTextFragment.setListener(MainActivity.this);
+                addTextFragment.show(getSupportFragmentManager(),addTextFragment.getTag());
+            }
+        });
+        btn_add_image.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addImageToPicture();
+            }
+        });
 
         loadImage();
+    }
+
+    private void addImageToPicture() {
+        Dexter.withActivity(this)
+                .withPermissions(Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .withListener(new MultiplePermissionsListener() {
+                    @Override
+                    public void onPermissionsChecked(MultiplePermissionsReport report) {
+
+                        if (report.areAllPermissionsGranted())  {
+                            Intent intent = new Intent(Intent.ACTION_PICK);
+                            intent.setType("image/*");
+                            startActivityForResult(intent,PERMISSION_INSERT_IMAGE);
+                        }
+                        else    {
+                            Toast.makeText(MainActivity.this, "Permission Denied...", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
+                        token.continuePermissionRequest();
+                    }
+                }).check();
     }
 
     private void loadImage() {
@@ -344,21 +388,31 @@ public class MainActivity extends AppCompatActivity implements FilterListFragmen
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == RESULT_OK && requestCode == PERMISSION_PICK_IMAGE) {
-            Bitmap bitmap = BitmapUtils.getBitmapFromGallery(this, data.getData(), 800, 800);
+        if (resultCode == RESULT_OK) {
 
-            originalBitmap.recycle();
-            finalBitmap.recycle();
-            filteredBitmap.recycle();
+            if (requestCode == PERMISSION_PICK_IMAGE) {
 
-            originalBitmap = bitmap.copy(Bitmap.Config.ARGB_8888,true);
-            finalBitmap = originalBitmap.copy(Bitmap.Config.ARGB_8888,true);
-            filteredBitmap = originalBitmap.copy(Bitmap.Config.ARGB_8888,true);
+                Bitmap bitmap = BitmapUtils.getBitmapFromGallery(this, data.getData(), 800, 800);
 
-            photoEditorView.getSource().setImageBitmap(originalBitmap);
-            bitmap.recycle();
+                originalBitmap.recycle();
+                finalBitmap.recycle();
+                filteredBitmap.recycle();
 
-            //filterListFragment.displayThumbnail(originalBitmap);
+                originalBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+                finalBitmap = originalBitmap.copy(Bitmap.Config.ARGB_8888, true);
+                filteredBitmap = originalBitmap.copy(Bitmap.Config.ARGB_8888, true);
+
+                photoEditorView.getSource().setImageBitmap(originalBitmap);
+                bitmap.recycle();
+
+                //filterListFragment.displayThumbnail(originalBitmap);
+            }
+            else if (requestCode == PERMISSION_INSERT_IMAGE)    {
+
+                Bitmap bitmap = BitmapUtils.getBitmapFromGallery(this,data.getData(),250,250);
+
+                photoEditor.addImage(bitmap);
+            }
         }
     }
 
@@ -390,5 +444,10 @@ public class MainActivity extends AppCompatActivity implements FilterListFragmen
     @Override
     public void onEmojiSelected(String emoji) {
         photoEditor.addEmoji(emoji);
+    }
+
+    @Override
+    public void onAddTextButtonClicked(String text, int color) {
+        photoEditor.addText(text,color);
     }
 }

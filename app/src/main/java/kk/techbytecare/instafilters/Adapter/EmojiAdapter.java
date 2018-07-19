@@ -15,9 +15,9 @@ import kk.techbytecare.instafilters.R;
 
 public class EmojiAdapter extends RecyclerView.Adapter<EmojiAdapter.EmojiViewHolder> {
 
-    Context context;
-    List<String> emojiList;
-    EmojiAdapterListener listener;
+    private Context context;
+    private List<String> emojiList;
+    private EmojiAdapterListener listener;
 
     public EmojiAdapter(Context context, List<String> emojiList, EmojiAdapterListener listener) {
         this.context = context;
@@ -49,7 +49,7 @@ public class EmojiAdapter extends RecyclerView.Adapter<EmojiAdapter.EmojiViewHol
 
         public EmojiconTextView emoji_text_view;
 
-        public EmojiViewHolder(View itemView) {
+        EmojiViewHolder(View itemView) {
             super(itemView);
 
             emoji_text_view = itemView.findViewById(R.id.emoji_text_view);
