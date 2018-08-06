@@ -1,5 +1,7 @@
 package kk.techbytecare.instafilters.Interface;
 
+import android.graphics.Typeface;
+
 public interface AddTextFragmentListener {
-    void onAddTextButtonClicked(String text, int color);
+    void onAddTextButtonClicked(Typeface typeface,String text, int color);
 }
